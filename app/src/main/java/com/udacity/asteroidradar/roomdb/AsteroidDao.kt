@@ -1,25 +1,25 @@
 package com.udacity.asteroidradar.roomdb
 
-import android.graphics.Bitmap
-import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.room.*
-import com.udacity.asteroidradar.Asteroid
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 
 @Dao
 interface AsteroidDao {
+    @Query("select * from asteroid_table order by closeApproachDate asc")
+    fun getAll(): LiveData<List<AsteroidEntity>>
+
+    @Query("select * from asteroid_table where closeApproachDate >= :startDate and closeApproachDate <= :endDate order by closeApproachDate asc")
+    fun getAsteroidsOfToday(startDate: String, endDate: String): LiveData<List<AsteroidEntity>>
+
+    @Query("select * from asteroid_table where id = :id")
+    fun get(id: Long): LiveData<AsteroidEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(asteroidEntity: Array<AsteroidEntity>)
+    suspend fun insertAll(vararg asteroidEntity: AsteroidEntity)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertAll(vararg asteroidEntity: AsteroidEntity)
-
-    @Query("SELECT * FROM asteroidDb ORDER BY close_approach_date DESC")
-    fun getAllSavedAsteroids(): List<AsteroidEntity>
-
-    @Update
-    fun update(asteroidEntity: AsteroidEntity)
-
+    @Query("delete from asteroid_table where closeApproachDate < :day")
+    suspend fun deletePreviousDay(day: String)
 }
-
